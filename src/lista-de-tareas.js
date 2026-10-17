@@ -59,6 +59,12 @@
         tarea.estado = tarea.estado === "pendiente" ? "hecha" : "pendiente";
         guardar(almacenamiento, tareas);
       },
+      borrar(id) {
+        const posicion = tareas.findIndex((candidata) => candidata.id === id);
+        if (posicion === -1) return;
+        tareas.splice(posicion, 1);
+        guardar(almacenamiento, tareas);
+      },
       tareas() {
         return tareas.map((tarea) => ({ ...tarea }));
       },

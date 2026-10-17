@@ -168,6 +168,64 @@ test("el conteo de Pendientes no incluye las Hechas", () => {
   assert.equal(lista.pendientes(), 2);
 });
 
+test("borrar una Tarea la quita y deja las demás en orden", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Una");
+  lista.agregar("Dos");
+  lista.agregar("Tres");
+
+  lista.borrar(lista.tareas()[1].id);
+
+  assert.deepEqual(textos(lista), ["Una", "Tres"]);
+});
+
+test("borrar una Tarea no borra otra con el mismo texto", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Regar");
+  lista.agregar("Regar");
+  const [primera, segunda] = lista.tareas();
+
+  lista.borrar(primera.id);
+
+  assert.deepEqual(lista.tareas(), [segunda]);
+});
+
+test("una Tarea borrada no vuelve al abrir otra vez la lista", () => {
+  const almacenamiento = almacenamientoEnMemoria();
+  const lista = crearListaDeTareas(almacenamiento);
+  lista.agregar("Se queda");
+  lista.agregar("Se va");
+  lista.borrar(lista.tareas()[1].id);
+
+  const reabierta = crearListaDeTareas(almacenamiento);
+
+  assert.deepEqual(textos(reabierta), ["Se queda"]);
+});
+
+test("borrar una Pendiente baja el conteo y borrar una Hecha no lo cambia", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Pendiente 1");
+  lista.agregar("Pendiente 2");
+  lista.agregar("Hecha");
+  const [pendiente, , hecha] = lista.tareas();
+  lista.cambiarEstado(hecha.id);
+
+  lista.borrar(hecha.id);
+  assert.equal(lista.pendientes(), 2);
+
+  lista.borrar(pendiente.id);
+  assert.equal(lista.pendientes(), 1);
+});
+
+test("borrar una Tarea que no existe no cambia nada", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Regar");
+
+  lista.borrar("no-existe");
+
+  assert.deepEqual(textos(lista), ["Regar"]);
+});
+
 test("se puede seguir agregando aunque el almacenamiento falle al escribir", () => {
   const lista = crearListaDeTareas({
     getItem: () => null,
