@@ -1,0 +1,48 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: #f5f5f5;
+  color: #222;
+}
+
+main {
+  max-width: 32rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 0.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.fila {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  font: inherit;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+#lista {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+#lista li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e5e5;
+  overflow-wrap: anywhere;
+}

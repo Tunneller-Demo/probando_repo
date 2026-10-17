@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lista de tareas</title>
+    <link rel="stylesheet" href="estilos.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Lista de tareas</h1>
+
+      <form id="formulario-agregar">
+        <label for="texto-tarea">Nueva Tarea</label>
+        <div class="fila">
+          <input id="texto-tarea" type="text" autocomplete="off" required />
+          <button type="submit">Agregar</button>
+        </div>
+      </form>
+
+      <ul id="lista" aria-label="Tareas"></ul>
+    </main>
+
+    <script src="src/lista-de-tareas.js"></script>
+    <script src="src/interfaz.js"></script>
+  </body>
+</html>
