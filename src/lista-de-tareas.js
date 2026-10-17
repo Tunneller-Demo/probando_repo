@@ -53,8 +53,17 @@
         tareas.push({ id: nuevoId(), texto: limpio, estado: "pendiente" });
         guardar(almacenamiento, tareas);
       },
+      cambiarEstado(id) {
+        const tarea = tareas.find((candidata) => candidata.id === id);
+        if (!tarea) return;
+        tarea.estado = tarea.estado === "pendiente" ? "hecha" : "pendiente";
+        guardar(almacenamiento, tareas);
+      },
       tareas() {
         return tareas.map((tarea) => ({ ...tarea }));
+      },
+      pendientes() {
+        return tareas.filter((tarea) => tarea.estado === "pendiente").length;
       },
     };
   }

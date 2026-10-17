@@ -108,6 +108,66 @@ for (const [caso, guardado] of [
   });
 }
 
+function estados(lista) {
+  return lista.tareas().map((tarea) => tarea.estado);
+}
+
+test("cambiar el estado de una Tarea Pendiente la deja Hecha, y otra vez Pendiente", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Comprar pan");
+  const [tarea] = lista.tareas();
+
+  lista.cambiarEstado(tarea.id);
+  assert.deepEqual(estados(lista), ["hecha"]);
+
+  lista.cambiarEstado(tarea.id);
+  assert.deepEqual(estados(lista), ["pendiente"]);
+});
+
+test("cambiar el estado de una Tarea no afecta a otra con el mismo texto", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Regar");
+  lista.agregar("Regar");
+  const [primera] = lista.tareas();
+
+  lista.cambiarEstado(primera.id);
+
+  assert.deepEqual(estados(lista), ["hecha", "pendiente"]);
+});
+
+test("cambiar el estado de una Tarea que no existe no cambia nada", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Regar");
+
+  lista.cambiarEstado("no-existe");
+
+  assert.deepEqual(estados(lista), ["pendiente"]);
+});
+
+test("el estado de una Tarea se conserva al volver a abrir la lista", () => {
+  const almacenamiento = almacenamientoEnMemoria();
+  const lista = crearListaDeTareas(almacenamiento);
+  lista.agregar("Primera");
+  lista.agregar("Segunda");
+  lista.cambiarEstado(lista.tareas()[1].id);
+
+  const reabierta = crearListaDeTareas(almacenamiento);
+
+  assert.deepEqual(estados(reabierta), ["pendiente", "hecha"]);
+});
+
+test("el conteo de Pendientes no incluye las Hechas", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  assert.equal(lista.pendientes(), 0);
+
+  lista.agregar("Una");
+  lista.agregar("Dos");
+  lista.agregar("Tres");
+  lista.cambiarEstado(lista.tareas()[0].id);
+
+  assert.equal(lista.pendientes(), 2);
+});
+
 test("se puede seguir agregando aunque el almacenamiento falle al escribir", () => {
   const lista = crearListaDeTareas({
     getItem: () => null,
