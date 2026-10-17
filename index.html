@@ -20,7 +20,14 @@
 
       <p id="contador" aria-live="polite"></p>
 
+      <div id="vistas" class="vistas" role="group" aria-label="Vista">
+        <button type="button" data-vista="todas" aria-pressed="true">Todas</button>
+        <button type="button" data-vista="pendientes" aria-pressed="false">Pendientes</button>
+        <button type="button" data-vista="hechas" aria-pressed="false">Hechas</button>
+      </div>
+
       <ul id="lista" aria-label="Tareas"></ul>
+      <p id="vista-vacia" hidden></p>
     </main>
 
     <script src="src/lista-de-tareas.js"></script>

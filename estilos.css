@@ -35,6 +35,29 @@ button {
   cursor: pointer;
 }
 
+.vistas {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.vistas button {
+  background: #fff;
+  border: 1px solid #bbb;
+  border-radius: 0.25rem;
+}
+
+.vistas button[aria-pressed="true"] {
+  background: #222;
+  border-color: #222;
+  color: #fff;
+}
+
+#vista-vacia {
+  color: #777;
+  font-style: italic;
+}
+
 #lista {
   list-style: none;
   padding: 0;

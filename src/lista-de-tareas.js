@@ -14,6 +14,7 @@
   }
 
   const CLAVE = "lista-de-tareas";
+  const ESTADO_DE_LA_VISTA = { pendientes: "pendiente", hechas: "hecha" };
 
   function esTarea(valor) {
     return (
@@ -65,8 +66,12 @@
         tareas.splice(posicion, 1);
         guardar(almacenamiento, tareas);
       },
-      tareas() {
-        return tareas.map((tarea) => ({ ...tarea }));
+      // Vista: "todas" (por defecto), "pendientes" o "hechas".
+      tareas(vista = "todas") {
+        const estado = ESTADO_DE_LA_VISTA[vista];
+        return tareas
+          .filter((tarea) => !estado || tarea.estado === estado)
+          .map((tarea) => ({ ...tarea }));
       },
       pendientes() {
         return tareas.filter((tarea) => tarea.estado === "pendiente").length;
