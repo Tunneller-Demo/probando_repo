@@ -226,6 +226,47 @@ test("borrar una Tarea que no existe no cambia nada", () => {
   assert.deepEqual(textos(lista), ["Regar"]);
 });
 
+function listaConEstadosMezclados() {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Una");
+  lista.agregar("Dos");
+  lista.agregar("Tres");
+  const [una, , tres] = lista.tareas();
+  lista.cambiarEstado(una.id);
+  lista.cambiarEstado(tres.id);
+  return lista;
+}
+
+function textosDeLaVista(lista, vista) {
+  return lista.tareas(vista).map((tarea) => tarea.texto);
+}
+
+test("cada vista devuelve sus Tareas en orden de creación", () => {
+  const lista = listaConEstadosMezclados();
+
+  assert.deepEqual(textosDeLaVista(lista, "todas"), ["Una", "Dos", "Tres"]);
+  assert.deepEqual(textosDeLaVista(lista, "pendientes"), ["Dos"]);
+  assert.deepEqual(textosDeLaVista(lista, "hechas"), ["Una", "Tres"]);
+});
+
+test("sin vista, o con una vista desconocida, se devuelven todas las Tareas", () => {
+  const lista = listaConEstadosMezclados();
+
+  assert.deepEqual(lista.tareas(), lista.tareas("todas"));
+  assert.deepEqual(lista.tareas("otra"), lista.tareas("todas"));
+});
+
+test("una Tarea marcada como Hecha pasa de la vista Pendientes a la vista Hechas", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Regar");
+  const [tarea] = lista.tareas("pendientes");
+
+  lista.cambiarEstado(tarea.id);
+
+  assert.deepEqual(textosDeLaVista(lista, "pendientes"), []);
+  assert.deepEqual(textosDeLaVista(lista, "hechas"), ["Regar"]);
+});
+
 test("se puede seguir agregando aunque el almacenamiento falle al escribir", () => {
   const lista = crearListaDeTareas({
     getItem: () => null,
