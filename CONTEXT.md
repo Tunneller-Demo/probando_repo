@@ -24,5 +24,5 @@ Guardar en un archivo todas las Tareas de la lista, con su texto y su estado, se
 _Avoid_: descargar, copia de seguridad
 
 **Importar**:
-Cargar en la lista las Tareas de un archivo exportado. Si el archivo no es una lista de Tareas, la lista no cambia.
+Sustituir la lista por las Tareas de un archivo exportado: las Tareas que había dejan de estar. Si el archivo no es una lista de Tareas o no trae ninguna, la lista no cambia.
 _Avoid_: subir, restaurar
