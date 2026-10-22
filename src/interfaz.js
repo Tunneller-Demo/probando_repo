@@ -25,6 +25,9 @@
   const botonesDeVista = document.querySelectorAll("#vistas button");
   const vistaVacia = document.getElementById("vista-vacia");
   const botonExportar = document.getElementById("exportar");
+  const botonImportar = document.getElementById("importar");
+  const selectorDeArchivo = document.getElementById("archivo-a-importar");
+  const aviso = document.getElementById("aviso");
 
   const MENSAJE_DE_VISTA_VACIA = {
     todas: "No hay Tareas.",
@@ -135,6 +138,29 @@
     enlace.click();
     enlace.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
+  });
+
+  botonImportar.addEventListener("click", () => selectorDeArchivo.click());
+
+  selectorDeArchivo.addEventListener("change", async () => {
+    const [archivo] = selectorDeArchivo.files;
+    if (!archivo) return;
+    const texto = await archivo.text();
+    // Se reinicia para poder elegir el mismo archivo otra vez.
+    selectorDeArchivo.value = "";
+    const { resultado, cantidad } = lista.importar(texto, (actuales, delArchivo) =>
+      window.confirm(
+        `Esto reemplazará tus ${actuales} Tareas actuales por las ${delArchivo} del archivo. ¿Continuar?`,
+      ),
+    );
+    if (resultado !== "importado") {
+      aviso.textContent = "";
+      return;
+    }
+    aviso.textContent =
+      cantidad === 1 ? "Se importó 1 Tarea" : `Se importaron ${cantidad} Tareas`;
+    vista = "todas";
+    pintar();
   });
 
   pintar();

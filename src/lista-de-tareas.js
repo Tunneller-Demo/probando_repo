@@ -85,6 +85,22 @@
           2,
         );
       },
+      // Sustituye la lista por las Tareas de un archivo exportado, con el mismo
+      // orden y estado e identificadores nuevos. Si la lista no está vacía,
+      // solo sustituye si confirmar(actuales, delArchivo) devuelve verdadero.
+      importar(texto, confirmar) {
+        const nuevas = JSON.parse(texto).map((tarea) => ({
+          id: nuevoId(),
+          texto: String(tarea.texto).trim(),
+          estado: tarea.estado,
+        }));
+        if (tareas.length > 0 && !confirmar(tareas.length, nuevas.length)) {
+          return { resultado: "cancelado" };
+        }
+        tareas.splice(0, tareas.length, ...nuevas);
+        guardar(almacenamiento, tareas);
+        return { resultado: "importado", cantidad: nuevas.length };
+      },
     };
   }
 
