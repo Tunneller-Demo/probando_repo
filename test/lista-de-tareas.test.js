@@ -279,3 +279,183 @@ test("se puede seguir agregando aunque el almacenamiento falle al escribir", () 
 
   assert.deepEqual(textos(lista), ["Sin guardar"]);
 });
+
+test("exportar devuelve todas las Tareas en orden, solo con texto y estado", () => {
+  const lista = listaConEstadosMezclados();
+
+  assert.deepEqual(JSON.parse(lista.exportar()), [
+    { texto: "Una", estado: "hecha" },
+    { texto: "Dos", estado: "pendiente" },
+    { texto: "Tres", estado: "hecha" },
+  ]);
+});
+
+test("exportar no cambia la lista", () => {
+  const lista = listaConEstadosMezclados();
+  const antes = lista.tareas();
+
+  lista.exportar();
+
+  assert.deepEqual(lista.tareas(), antes);
+  assert.equal(lista.pendientes(), 1);
+});
+
+test("exportar una lista vacía devuelve una lista JSON vacía", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+
+  assert.deepEqual(JSON.parse(lista.exportar()), []);
+});
+
+test("se puede exportar aunque el almacenamiento falle", () => {
+  const lista = crearListaDeTareas({
+    getItem: () => {
+      throw new Error("almacenamiento bloqueado");
+    },
+    setItem: () => {
+      throw new Error("almacenamiento bloqueado");
+    },
+  });
+  lista.agregar("En memoria");
+
+  assert.deepEqual(JSON.parse(lista.exportar()), [
+    { texto: "En memoria", estado: "pendiente" },
+  ]);
+});
+
+const nuncaConfirmar = () => {
+  throw new Error("no debía pedir confirmación");
+};
+
+test("exportar e importar en otra lista deja las mismas Tareas, orden y estado", () => {
+  const origen = listaConEstadosMezclados();
+  const destino = crearListaDeTareas(almacenamientoEnMemoria());
+
+  const resultado = destino.importar(origen.exportar(), nuncaConfirmar);
+
+  assert.deepEqual(resultado, { resultado: "importado", cantidad: 3 });
+  assert.deepEqual(JSON.parse(destino.exportar()), JSON.parse(origen.exportar()));
+  assert.equal(destino.pendientes(), 1);
+});
+
+test("importar sobre una lista con Tareas pide confirmación con N y M y, si se acepta, la sustituye", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+  lista.agregar("Vieja");
+  const llamadas = [];
+
+  const resultado = lista.importar(
+    '[{"texto":"Nueva 1","estado":"hecha"},{"texto":"Nueva 2","estado":"pendiente"}]',
+    (actuales, delArchivo) => {
+      llamadas.push([actuales, delArchivo]);
+      return true;
+    },
+  );
+
+  assert.deepEqual(llamadas, [[1, 2]]);
+  assert.deepEqual(resultado, { resultado: "importado", cantidad: 2 });
+  assert.deepEqual(textos(lista), ["Nueva 1", "Nueva 2"]);
+});
+
+test("si se cancela la confirmación, la lista y el almacenamiento quedan intactos", () => {
+  const almacenamiento = almacenamientoEnMemoria();
+  const lista = crearListaDeTareas(almacenamiento);
+  lista.agregar("Se queda");
+  const antes = lista.tareas();
+  let escrituras = 0;
+  const setItem = almacenamiento.setItem;
+  almacenamiento.setItem = (clave, valor) => {
+    escrituras += 1;
+    setItem(clave, valor);
+  };
+
+  const resultado = lista.importar('[{"texto":"Otra","estado":"hecha"}]', () => false);
+
+  assert.deepEqual(resultado, { resultado: "cancelado" });
+  assert.deepEqual(lista.tareas(), antes);
+  assert.equal(escrituras, 0);
+  assert.deepEqual(crearListaDeTareas(almacenamiento).tareas(), antes);
+});
+
+test("importar recorta el texto de cada Tarea como al agregar", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+
+  lista.importar('[{"texto":"  Regar  ","estado":"pendiente"}]', nuncaConfirmar);
+
+  assert.deepEqual(textos(lista), ["Regar"]);
+});
+
+test("las Tareas importadas tienen identificadores distintos, persisten y se pueden cambiar y borrar", () => {
+  const almacenamiento = almacenamientoEnMemoria();
+  crearListaDeTareas(almacenamiento).importar(
+    '[{"texto":"Regar","estado":"pendiente"},{"texto":"Regar","estado":"hecha"},{"texto":"Leer","estado":"pendiente"}]',
+    nuncaConfirmar,
+  );
+
+  const reabierta = crearListaDeTareas(almacenamiento);
+  const [primera, segunda, tercera] = reabierta.tareas();
+  assert.equal(new Set([primera.id, segunda.id, tercera.id]).size, 3);
+  assert.deepEqual(estados(reabierta), ["pendiente", "hecha", "pendiente"]);
+
+  reabierta.cambiarEstado(primera.id);
+  reabierta.borrar(tercera.id);
+
+  assert.deepEqual(estados(reabierta), ["hecha", "hecha"]);
+  assert.equal(reabierta.pendientes(), 0);
+});
+
+test("un archivo con campos de más, como identificadores, se importa", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+
+  const resultado = lista.importar(
+    '[{"id":"x","texto":"Una","estado":"hecha","color":"rojo"},{"id":"x","texto":"Dos","estado":"pendiente"}]',
+    nuncaConfirmar,
+  );
+
+  assert.deepEqual(resultado, { resultado: "importado", cantidad: 2 });
+  assert.deepEqual(
+    lista.tareas().map(({ texto, estado }) => ({ texto, estado })),
+    [
+      { texto: "Una", estado: "hecha" },
+      { texto: "Dos", estado: "pendiente" },
+    ],
+  );
+  const [una, dos] = lista.tareas();
+  assert.notEqual(una.id, dos.id);
+  assert.notEqual(una.id, "x");
+});
+
+for (const [caso, archivo] of [
+  ["un archivo roto (JSON no válido)", "{esto no es json"],
+  ["un JSON que no es una lista", '{"texto":"Hola","estado":"pendiente"}'],
+  ["una lista vacía", "[]"],
+  ["una Tarea que no es un objeto", '["Regar"]'],
+  ["una Tarea null", "[null]"],
+  ["una Tarea sin texto", '[{"estado":"pendiente"}]'],
+  ["un texto que no es una cadena", '[{"texto":42,"estado":"pendiente"}]'],
+  ["un texto vacío", '[{"texto":"","estado":"pendiente"}]'],
+  ["un texto solo con espacios", '[{"texto":"   ","estado":"hecha"}]'],
+  ["un estado desconocido", '[{"texto":"Regar","estado":"a medias"}]'],
+  [
+    "una sola Tarea incorrecta entre varias correctas",
+    '[{"texto":"Una","estado":"hecha"},{"texto":"Dos","estado":"otro"},{"texto":"Tres","estado":"pendiente"}]',
+  ],
+]) {
+  test(`importar ${caso} es inválido y deja la lista y el almacenamiento intactos`, () => {
+    const almacenamiento = almacenamientoEnMemoria();
+    const lista = crearListaDeTareas(almacenamiento);
+    lista.agregar("Se queda");
+    const antes = lista.tareas();
+    let escrituras = 0;
+    const setItem = almacenamiento.setItem;
+    almacenamiento.setItem = (clave, valor) => {
+      escrituras += 1;
+      setItem(clave, valor);
+    };
+
+    const resultado = lista.importar(archivo, nuncaConfirmar);
+
+    assert.deepEqual(resultado, { resultado: "invalido" });
+    assert.deepEqual(lista.tareas(), antes);
+    assert.equal(escrituras, 0);
+    assert.deepEqual(crearListaDeTareas(almacenamiento).tareas(), antes);
+  });
+}

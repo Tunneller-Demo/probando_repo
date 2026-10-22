@@ -28,6 +28,13 @@
 
       <ul id="lista" aria-label="Tareas"></ul>
       <p id="vista-vacia" hidden></p>
+
+      <div id="archivo" class="archivo" role="group" aria-label="Archivo">
+        <button type="button" id="exportar">Exportar</button>
+        <button type="button" id="importar">Importar</button>
+        <input type="file" id="archivo-a-importar" accept=".json,application/json" hidden />
+      </div>
+      <p id="aviso" role="status"></p>
     </main>
 
     <script src="src/lista-de-tareas.js"></script>
