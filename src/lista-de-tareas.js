@@ -16,14 +16,35 @@
   const CLAVE = "lista-de-tareas";
   const ESTADO_DE_LA_VISTA = { pendientes: "pendiente", hechas: "hecha" };
 
-  function esTarea(valor) {
+  // Texto y estado válidos; el identificador lo comprueba quien lo necesite.
+  function tieneFormaDeTarea(valor) {
     return (
       valor !== null &&
       typeof valor === "object" &&
-      typeof valor.id === "string" &&
       typeof valor.texto === "string" &&
       (valor.estado === "pendiente" || valor.estado === "hecha")
     );
+  }
+
+  function esTarea(valor) {
+    return tieneFormaDeTarea(valor) && typeof valor.id === "string";
+  }
+
+  // Una Tarea de un archivo exportado: sin identificador y con texto útil.
+  function esTareaDelArchivo(valor) {
+    return tieneFormaDeTarea(valor) && valor.texto.trim() !== "";
+  }
+
+  // Las Tareas del archivo, o null si no es una lista de Tareas válida.
+  function leerArchivo(texto) {
+    try {
+      const leido = JSON.parse(texto);
+      return Array.isArray(leido) && leido.length > 0 && leido.every(esTareaDelArchivo)
+        ? leido
+        : null;
+    } catch {
+      return null;
+    }
   }
 
   // Si falta lo guardado o no tiene la forma esperada, se empieza de cero.
@@ -88,10 +109,13 @@
       // Sustituye la lista por las Tareas de un archivo exportado, con el mismo
       // orden y estado e identificadores nuevos. Si la lista no está vacía,
       // solo sustituye si confirmar(actuales, delArchivo) devuelve verdadero.
+      // Si el archivo no es una lista de Tareas válida, no cambia nada.
       importar(texto, confirmar) {
-        const nuevas = JSON.parse(texto).map((tarea) => ({
+        const delArchivo = leerArchivo(texto);
+        if (!delArchivo) return { resultado: "invalido" };
+        const nuevas = delArchivo.map((tarea) => ({
           id: nuevoId(),
-          texto: String(tarea.texto).trim(),
+          texto: tarea.texto.trim(),
           estado: tarea.estado,
         }));
         if (tareas.length > 0 && !confirmar(tareas.length, nuevas.length)) {

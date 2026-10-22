@@ -153,6 +153,11 @@
         `Esto reemplazará tus ${actuales} Tareas actuales por las ${delArchivo} del archivo. ¿Continuar?`,
       ),
     );
+    if (resultado === "invalido") {
+      aviso.textContent =
+        "El archivo no es una lista de Tareas válida. Tu lista no ha cambiado.";
+      return;
+    }
     if (resultado !== "importado") {
       aviso.textContent = "";
       return;

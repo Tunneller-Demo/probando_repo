@@ -422,3 +422,40 @@ test("un archivo con campos de más, como identificadores, se importa", () => {
   assert.notEqual(una.id, dos.id);
   assert.notEqual(una.id, "x");
 });
+
+for (const [caso, archivo] of [
+  ["un archivo roto (JSON no válido)", "{esto no es json"],
+  ["un JSON que no es una lista", '{"texto":"Hola","estado":"pendiente"}'],
+  ["una lista vacía", "[]"],
+  ["una Tarea que no es un objeto", '["Regar"]'],
+  ["una Tarea null", "[null]"],
+  ["una Tarea sin texto", '[{"estado":"pendiente"}]'],
+  ["un texto que no es una cadena", '[{"texto":42,"estado":"pendiente"}]'],
+  ["un texto vacío", '[{"texto":"","estado":"pendiente"}]'],
+  ["un texto solo con espacios", '[{"texto":"   ","estado":"hecha"}]'],
+  ["un estado desconocido", '[{"texto":"Regar","estado":"a medias"}]'],
+  [
+    "una sola Tarea incorrecta entre varias correctas",
+    '[{"texto":"Una","estado":"hecha"},{"texto":"Dos","estado":"otro"},{"texto":"Tres","estado":"pendiente"}]',
+  ],
+]) {
+  test(`importar ${caso} es inválido y deja la lista y el almacenamiento intactos`, () => {
+    const almacenamiento = almacenamientoEnMemoria();
+    const lista = crearListaDeTareas(almacenamiento);
+    lista.agregar("Se queda");
+    const antes = lista.tareas();
+    let escrituras = 0;
+    const setItem = almacenamiento.setItem;
+    almacenamiento.setItem = (clave, valor) => {
+      escrituras += 1;
+      setItem(clave, valor);
+    };
+
+    const resultado = lista.importar(archivo, nuncaConfirmar);
+
+    assert.deepEqual(resultado, { resultado: "invalido" });
+    assert.deepEqual(lista.tareas(), antes);
+    assert.equal(escrituras, 0);
+    assert.deepEqual(crearListaDeTareas(almacenamiento).tareas(), antes);
+  });
+}
