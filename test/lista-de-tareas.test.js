@@ -279,3 +279,45 @@ test("se puede seguir agregando aunque el almacenamiento falle al escribir", () 
 
   assert.deepEqual(textos(lista), ["Sin guardar"]);
 });
+
+test("exportar devuelve todas las Tareas en orden, solo con texto y estado", () => {
+  const lista = listaConEstadosMezclados();
+
+  assert.deepEqual(JSON.parse(lista.exportar()), [
+    { texto: "Una", estado: "hecha" },
+    { texto: "Dos", estado: "pendiente" },
+    { texto: "Tres", estado: "hecha" },
+  ]);
+});
+
+test("exportar no cambia la lista", () => {
+  const lista = listaConEstadosMezclados();
+  const antes = lista.tareas();
+
+  lista.exportar();
+
+  assert.deepEqual(lista.tareas(), antes);
+  assert.equal(lista.pendientes(), 1);
+});
+
+test("exportar una lista vacía devuelve una lista JSON vacía", () => {
+  const lista = crearListaDeTareas(almacenamientoEnMemoria());
+
+  assert.deepEqual(JSON.parse(lista.exportar()), []);
+});
+
+test("se puede exportar aunque el almacenamiento falle", () => {
+  const lista = crearListaDeTareas({
+    getItem: () => {
+      throw new Error("almacenamiento bloqueado");
+    },
+    setItem: () => {
+      throw new Error("almacenamiento bloqueado");
+    },
+  });
+  lista.agregar("En memoria");
+
+  assert.deepEqual(JSON.parse(lista.exportar()), [
+    { texto: "En memoria", estado: "pendiente" },
+  ]);
+});

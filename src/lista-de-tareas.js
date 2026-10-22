@@ -76,6 +76,15 @@
       pendientes() {
         return tareas.filter((tarea) => tarea.estado === "pendiente").length;
       },
+      // El texto del archivo de exportación: todas las Tareas, sea cual sea la
+      // Vista, sin los identificadores, que solo valen en este navegador.
+      exportar() {
+        return JSON.stringify(
+          tareas.map(({ texto, estado }) => ({ texto, estado })),
+          null,
+          2,
+        );
+      },
     };
   }
 

@@ -24,6 +24,7 @@
   const contador = document.getElementById("contador");
   const botonesDeVista = document.querySelectorAll("#vistas button");
   const vistaVacia = document.getElementById("vista-vacia");
+  const botonExportar = document.getElementById("exportar");
 
   const MENSAJE_DE_VISTA_VACIA = {
     todas: "No hay Tareas.",
@@ -120,6 +121,20 @@
       vista = boton.dataset.vista;
       pintar();
     });
+  });
+
+  // Guarda en un archivo el texto de exportar() mediante un enlace temporal;
+  // no cambia la lista ni la Vista, así que no hace falta repintar.
+  botonExportar.addEventListener("click", () => {
+    const contenido = new Blob([lista.exportar()], { type: "application/json" });
+    const url = URL.createObjectURL(contenido);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = "lista-de-tareas.json";
+    document.body.append(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   });
 
   pintar();
