@@ -18,3 +18,11 @@ _Avoid_: completada, terminada
 **Vista**:
 Qué Tareas se están mirando: **Todas**, solo las **Pendientes** o solo las **Hechas**. Elegir una Vista no cambia ninguna Tarea.
 _Avoid_: filtro (como sustantivo del dominio)
+
+**Exportar**:
+Guardar en un archivo todas las Tareas de la lista, con su texto y su estado, sea cual sea la Vista, para llevarlas a otro navegador.
+_Avoid_: descargar, copia de seguridad
+
+**Importar**:
+Cargar en la lista las Tareas de un archivo exportado. Si el archivo no es una lista de Tareas, la lista no cambia.
+_Avoid_: subir, restaurar
